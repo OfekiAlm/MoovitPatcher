@@ -261,12 +261,17 @@ def get_activities_with_entry_points(apk_path: Path) -> list:
 **Discovery:**
 ```python
 def patch_google_api_key(temp_path: Path, package_name: str, custom_google_api_key: str):
+    resources_path = temp_path / EXTRACTED_PATH / 'resources.arsc'
     resources = ARSCParser(resources_path.read_bytes())
     _, original_google_api_key = resources.get_string(package_name, 'google_api_key')
+    with open(resources_path, 'rb') as file:
+        resources_data = file.read()
     resources_data = resources_data.replace(
         original_google_api_key.encode(), 
         custom_google_api_key.encode()
     )
+    with open(resources_path, 'wb') as file:
+        file.write(resources_data)
 ```
 
 **Impact:**
@@ -867,10 +872,12 @@ def extract_apk(apk_path, temp_path):
 parser.add_argument('--arch', choices=['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'])
 ```
 
-**Market Share (2024):**
-- arm64-v8a: ~90% (all modern phones)
-- armeabi-v7a: ~8% (older phones)
+**Market Share (Approximate):**
+- arm64-v8a: ~90% (all modern phones, 2015+)
+- armeabi-v7a: ~8% (older phones, 2011-2015)
 - x86/x86_64: ~2% (emulators, ChromeOS)
+
+*Note: Based on Android Device Catalog and Google Play Console statistics. Actual distribution varies by region and target audience.*
 
 **Decision:**
 - Default: arm64-v8a (covers most users)
@@ -1405,10 +1412,10 @@ This research demonstrates:
 
 ## References & Resources
 
-### Academic Papers
-- "The Antivirus Age: Exploring Defenses Against Malware" (2020)
-- "Android Hacker's Handbook" by Joshua J. Drake et al.
-- "YAHFA: Yet Another Hook Framework for ART" by rk700
+### Academic Papers & Books
+- Drake, J.J., Lanier, Z., Mulliner, C., Fora, P.O., Ridley, S.A., & Wicherski, G. (2014). *Android Hacker's Handbook*. Wiley. ISBN: 978-1118608647
+- Elenkov, N. (2014). *Android Security Internals: An In-Depth Guide to Android's Security Architecture*. No Starch Press. ISBN: 978-1593275815
+- OWASP Mobile Security Testing Guide (MSTG). Available at: https://owasp.org/www-project-mobile-security-testing-guide/
 
 ### Tools & Frameworks
 - [apktool](https://ibotpeaches.github.io/Apktool/) - APK decompilation
